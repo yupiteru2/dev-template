@@ -3,14 +3,16 @@
   標準開発テンプレートの配布・回収。
 
 .EXAMPLE
-  .\適用.ps1 -Global                      # ~/.claude へ配る（全プロジェクトに効く）
-  .\適用.ps1 -Project C:\Claude\新規       # 新規プロジェクトのひな型を用意する
-  .\適用.ps1 -Collect                      # ~/.claude の変更を global/ へ戻す
+  .\適用.ps1 -Global                                   # ~/.claude へ配る（全プロジェクトに効く）
+  .\適用.ps1 -Project C:\Claude\新規                    # 新規プロジェクトのひな型を用意する
+  .\適用.ps1 -Project C:\Claude\新規 -Skill bugfix      # プロジェクト固有スキルのひな型を作る
+  .\適用.ps1 -Collect                                   # ~/.claude の変更を global/ へ戻す
 #>
 [CmdletBinding()]
 param(
     [switch]$Global,
     [string]$Project,
+    [string]$Skill,
     [switch]$Collect
 )
 
@@ -79,8 +81,26 @@ if ($Project) {
         Write-Host "ひな型を作成しました: $claudeMd"
     }
     New-Item -ItemType Directory -Force -Path (Join-Path $Project '.claude\skills') | Out-Null
+
+    if ($Skill) {
+        $skillDir = Join-Path $Project ".claude\skills\$Skill"
+        $skillFile = Join-Path $skillDir 'SKILL.md'
+        if (Test-Path $skillFile) {
+            Write-Host "既に存在するため作成しません: $skillFile"
+        }
+        else {
+            New-Item -ItemType Directory -Force -Path $skillDir | Out-Null
+            $tpl = Join-Path $Root 'project\skills\SKILL.md.template'
+            $body = [System.IO.File]::ReadAllText($tpl, [System.Text.UTF8Encoding]::new($false))
+            $body = $body.Replace('__SKILL_NAME__', $Skill)
+            [System.IO.File]::WriteAllText($skillFile, $body, [System.Text.UTF8Encoding]::new($false))
+            Write-Host "スキルのひな型を作成しました: $skillFile"
+            Write-Host '  聖典を先に読ませる導線が入っています。消さないでください。'
+        }
+    }
+
     Write-Host '次にやること:'
     Write-Host '  1. CLAUDE.md の穴埋め箇所を実際の内容に置き換える'
-    Write-Host '  2. プロジェクト固有スキルは .claude\skills\ に置く'
-    Write-Host '  3. 同名スキルはグローバルを覆い隠すので、その場合は冒頭に導線を張る'
+    Write-Host '  2. プロジェクト固有スキルは -Skill で作る（手書きしない）'
+    Write-Host '  3. 現場の改変が他でも通用すると分かったら global/ へ昇格させる'
 }
