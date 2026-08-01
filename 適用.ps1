@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   標準開発テンプレートの配布・回収。
 
@@ -79,7 +79,8 @@ if ($Project) {
         Write-Host "ひな型を作成しました: $claudeMd"
     }
     New-Item -ItemType Directory -Force -Path (Join-Path $Project '.claude\skills') | Out-Null
-    Write-Host '次にやること: CLAUDE.md の <穴埋め> を実際の内容に置き換える。'
-    Write-Host '           プロジェクト固有スキルは .claude\skills\ に置く。'
-    Write-Host '           同名スキルはグローバルを覆い隠すので、その場合は冒頭に導線を張る。'
+    Write-Host '次にやること:'
+    Write-Host '  1. CLAUDE.md の穴埋め箇所を実際の内容に置き換える'
+    Write-Host '  2. プロジェクト固有スキルは .claude\skills\ に置く'
+    Write-Host '  3. 同名スキルはグローバルを覆い隠すので、その場合は冒頭に導線を張る'
 }
