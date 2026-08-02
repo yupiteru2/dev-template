@@ -42,15 +42,13 @@ if (-not $Global -and -not $Collect -and -not $Project) {
 if ($Global) {
     $targets = @(
         (Join-Path $ClaudeHome 'CLAUDE.md'),
-        (Join-Path $ClaudeHome 'skills\requirement-driven'),
-        (Join-Path $ClaudeHome '要件駆動プロンプト.md')
+        (Join-Path $ClaudeHome 'skills\requirement-driven')
     )
     $backup = Backup-Existing -Paths $targets
     if ($backup) { Write-Host "既存を退避しました: $backup" }
 
     New-Item -ItemType Directory -Force -Path (Join-Path $ClaudeHome 'skills') | Out-Null
     Copy-Item (Join-Path $Root 'global\CLAUDE.md') -Destination $ClaudeHome -Force
-    Copy-Item (Join-Path $Root 'global\要件駆動プロンプト.md') -Destination $ClaudeHome -Force
     Copy-Item (Join-Path $Root 'global\skills\requirement-driven') `
         -Destination (Join-Path $ClaudeHome 'skills') -Recurse -Force
     Write-Host "適用しました: $ClaudeHome"
@@ -60,8 +58,6 @@ if ($Global) {
 if ($Collect) {
     Copy-Item (Join-Path $ClaudeHome 'CLAUDE.md') `
         -Destination (Join-Path $Root 'global\CLAUDE.md') -Force
-    Copy-Item (Join-Path $ClaudeHome '要件駆動プロンプト.md') `
-        -Destination (Join-Path $Root 'global\要件駆動プロンプト.md') -Force
     Copy-Item (Join-Path $ClaudeHome 'skills\requirement-driven') `
         -Destination (Join-Path $Root 'global\skills') -Recurse -Force
     Write-Host '回収しました。git diff で差分を確認してからコミットしてください。'
