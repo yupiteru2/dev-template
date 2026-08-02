@@ -1,0 +1,74 @@
+name: validate
+
+# テンプレートが壊れた状態で配られるのを防ぐ。
+# 実コードを持たないリポジトリなので、検証対象は「構造」と「配布事故の再発防止」。
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 必須ファイルが揃っているか
+        run: |
+          set -e
+          for f in \
+            "README.md" \
+            "適用.ps1" \
+            "global/CLAUDE.md" \
+            "global/要件駆動プロンプト.md" \
+            "global/skills/requirement-driven/SKILL.md" \
+            "project/CLAUDE.md.template" \
+            "project/skills/SKILL.md.template"
+          do
+            if [ ! -f "$f" ]; then
+              echo "::error::必須ファイルがありません: $f"
+              exit 1
+            fi
+          done
+          echo "必須ファイル: OK"
+
+      - name: .ps1 がBOM付きUTF-8か（PowerShell 5.1で日本語が壊れるため）
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r -d '' f; do
+            head=$(head -c 3 "$f" | od -An -tx1 | tr -d ' \n')
+            if [ "$head" != "efbbbf" ]; then
+              echo "::error file=$f::BOMがありません（PowerShell 5.1が日本語を壊します）"
+              fail=1
+            fi
+          done < <(find . -name '*.ps1' -print0)
+          exit $fail
+
+      - name: SKILL.md にfrontmatterがあるか
+        run: |
+          set -e
+          fail=0
+          while IFS= read -r -d '' f; do
+            if [ "$(head -n 1 "$f")" != "---" ]; then
+              echo "::error file=$f::先頭が --- で始まっていません"
+              fail=1
+              continue
+            fi
+            for key in name description; do
+              if ! sed -n '2,10p' "$f" | grep -q "^${key}:"; then
+                echo "::error file=$f::frontmatterに ${key}: がありません"
+                fail=1
+              fi
+            done
+          done < <(find . -name 'SKILL.md' -print0)
+          exit $fail
+
+      - name: プロジェクト側スキルのひな型に導線が残っているか
+        run: |
+          set -e
+          if ! grep -q 'そちらを先に読むこと' project/skills/SKILL.md.template; then
+            echo "::error::同名スキルが聖典を覆い隠すため、導線の一文は必須です"
+            exit 1
+          fi
+          echo "導線: OK"
