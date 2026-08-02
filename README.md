@@ -17,13 +17,16 @@ Claude Codeでの開発を「後付け・手戻り」に陥らせないための
 ## 中身
 
 ```
-global/                     → ~/.claude/ へ配る（全プロジェクトに効く）
-  CLAUDE.md                 開発共通ルール。要件の確定・問題対応の作法
+global/                      → ~/.claude/ へ配る（全プロジェクトに効く）
+  CLAUDE.md                  開発共通ルール。要件の確定・問題対応の作法
   skills/requirement-driven/ 要件駆動フロー（フェーズ0〜4）
   要件駆動プロンプト.md       Claude Code以外で使う保険
-project/
-  CLAUDE.md.template        新規プロジェクト用のひな型
-適用.ps1                     配布・回収スクリプト
+project/                     → 各プロジェクトへ配る
+  CLAUDE.md.template         プロジェクト用のひな型（穴埋め式）
+  skills/SKILL.md.template   プロジェクト固有スキルのひな型（導線入り）
+導入プロンプト.md             既存プロジェクトへ導入するときの貼り付け文
+適用.ps1                      配布・回収スクリプト
+.github/workflows/validate.yml テンプレート構造の検証（CI）
 ```
 
 ## 使い方
@@ -98,12 +101,6 @@ cd C:\Claude\dev-template
 | 2 手順書 | `~/.claude/skills/requirement-driven/` | 必要時に読み込み。1の肥大を防ぐ |
 | 3 携帯用プロンプト | `要件駆動プロンプト.md` | 自動化できない環境向けの保険 |
 
-## 同名スキルの優先順位に注意
-
-プロジェクト側に同名スキル（例: `requirement-driven`）を置くと、**そのプロジェクト内では
-プロジェクト側が優先されグローバルが読まれない**。プロジェクト固有の内容を足したい場合は、
-プロジェクト側の冒頭に「グローバルを先に読むこと」という導線を必ず張る。
-
 ## 注意: `.ps1` は BOM付きUTF-8 で保存する
 
 Windows PowerShell 5.1 は `.ps1` を既定でANSIとして読むため、**BOMが無いと日本語が
@@ -116,10 +113,23 @@ BOMが落ちるので、日本語を含む変更をしたら先頭バイトを�
 
 ## リモート
 
-個人情報を含みうるため**Webリモート（GitHub等）へはpushしない**。
-バックアップはローカルまたは家庭NASのbareリポジトリへ。
+**このリポジトリはGitHubに置いてよい**（https://github.com/yupiteru2/dev-template）。
+中身が汎用の開発ルールのみで、NASパス・作品名・購入履歴といった個人情報を
+一切含まないため。CIもここで回している。
+
+**他のプロジェクトは同じ扱いにしないこと。** 個人情報を含むものはWebリモートへ
+pushせず、ローカルまたは家庭NASのbareリポジトリへ。
 
 ```powershell
-git clone --bare C:\Claude\dev-template \\NAS\backup\dev-template.git
-git remote add nas \\NAS\backup\dev-template.git
+git clone --bare C:\Claude\<プロジェクト> \\NAS\backup\<プロジェクト>.git
+git remote add nas \\NAS\backup\<プロジェクト>.git
 ```
+
+判断基準は「Webに置くな」ではなく**「個人情報を外部に出すな」**。
+禁止の形で覚えると、安全なものまで手段を失う。
+
+### push時の検証（任意）
+
+単独開発で外部CIを持たないプロジェクトでは、`pre-push`フックに検証コマンドを
+入れておくと「壊れたコードを本流に入れない」を確保できる。file-organizerに実装例あり。
+ただし**pushしない限り発火しない**ので、bareリポジトリを作って初めて効く。
