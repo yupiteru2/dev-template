@@ -21,6 +21,7 @@ jobs:
             "適用.ps1" \
             "global/CLAUDE.md" \
             "global/skills/requirement-driven/SKILL.md" \
+            "global/hooks.json" \
             "導入プロンプト.md" \
             "project/CLAUDE.md.template" \
             "project/skills/SKILL.md.template"
