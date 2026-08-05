@@ -51,6 +51,35 @@ if ($Global) {
     Copy-Item (Join-Path $Root 'global\CLAUDE.md') -Destination $ClaudeHome -Force
     Copy-Item (Join-Path $Root 'global\skills\requirement-driven') `
         -Destination (Join-Path $ClaudeHome 'skills') -Recurse -Force
+
+    # settings.json は丸ごと上書きすると他の設定を壊すため、hooks の該当キーだけ差し込む
+    $settingsPath = Join-Path $ClaudeHome 'settings.json'
+    $hooksPath = Join-Path $Root 'global\hooks.json'
+    if (Test-Path $hooksPath) {
+        if (Test-Path $settingsPath) {
+            Copy-Item $settingsPath -Destination "$settingsPath.bak" -Force
+            $settings = Get-Content $settingsPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        }
+        else {
+            $settings = [pscustomobject]@{}
+        }
+        $newHooks = Get-Content $hooksPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        if (-not $settings.PSObject.Properties['hooks']) {
+            $settings | Add-Member -NotePropertyName hooks -NotePropertyValue ([pscustomobject]@{})
+        }
+        foreach ($prop in $newHooks.PSObject.Properties) {
+            if ($settings.hooks.PSObject.Properties[$prop.Name]) {
+                $settings.hooks.($prop.Name) = $prop.Value
+            }
+            else {
+                $settings.hooks | Add-Member -NotePropertyName $prop.Name -NotePropertyValue $prop.Value
+            }
+        }
+        $json = $settings | ConvertTo-Json -Depth 20
+        [System.IO.File]::WriteAllText($settingsPath, $json, [System.Text.UTF8Encoding]::new($false))
+        Write-Host "hooks を settings.json へ差し込みました（既存は .bak へ退避）"
+    }
+
     Write-Host "適用しました: $ClaudeHome"
 }
 

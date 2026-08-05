@@ -1,0 +1,13 @@
+{
+  "UserPromptSubmit": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"UserPromptSubmit\", \"additionalContext\": \"【要件駆動チェック】(1) 今どのフェーズかを1行で宣言してから答える。(2) 要件・設計を出す前に、自分が書いた整理へ診断質問を当て直す（どれが制約由来の歪みか）。(3) 成果物の契約: 表形式／根拠に数字／自作の境界事例5つ／不明3つ／一往復で終えない。(4) 実測値・症状は要件文書ではなく調査記録へ。\"}}'",
+          "timeout": 5
+        }
+      ]
+    }
+  ]
+}
